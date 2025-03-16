@@ -63,3 +63,7 @@ Bronze will look pretty similar - a full extract of the ```SalesOrderHeader``` f
 Silver and Gold will now have multiplied - one set for each tenant.
 
 Our ETL process now needs to run to extract TenantID=1 and move that to the Silver for TenantID=1 and the same for TenantID=2.  This should still be a 'dump and reload' process. Just remove all the data from the existing table in Silver and Gold and reload the entire table.
+
+Remember, we need for this to run out of one single initiation action.  It needs to be unified into one single process that can be run with one action.  One manual run or one scheduled item.
+
+Also, use the tool of your choice to draw an architecture diagram showing how the system works.
