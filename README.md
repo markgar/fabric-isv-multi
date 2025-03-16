@@ -11,7 +11,9 @@ The other is to have one or just a few database that host all the customers.  So
 This database is a copy of the AdventureWorksLT database, but with one modification.  It has a new column added to the tables, TenantID.  This allows us to use this column to differentiate between the different tenants.  We'll use this column to split the data out by customer into different workspaces.  This keeps the data for each customer separate in different workspaces without having to add RLS.
 
 ## Medallion Architecture
-Let's use a Medallion Architecture.  Medallion architecture is just a strategy.  It is not the only way.  It can be used and molded to fit the current needs.  So while we'll build this a certain way, don't assume that this is the only way to build this.
+Let's use a Medallion Architecture.  Medallion architecture is just a strategy - a framework.  The way that it is described in books and in Microsoft's documentation is not the only way.  It can be used and molded to fit the current needs of the current project.  So while we'll build this a certain way, don't assume that this is the only way to build this.
+
+In Fabric there are some choices that need to be made for the implementation.  ETL can be done by Pipelines, Notebooks, Spark Job Definitions, and Warehouse Stored Procedures - and maybe even more.  I won't be suggesting any particular strategy.  Choose one and go with it.  Maybe you'll decide to come back and try a different implementation.  The more you try, the more you'll know how to compare and contrast them when someone asks.
 
 ### Bronze
 We'll use Bronze as the landing place for the data just after SQL.  At first we're going to do full loads from SQL.  But eventually we'll modify the architecture to accomodate incremental loads.  We'll land the data from SQL, either a full load or an incremental load in the Bronze layer.  So in this layer, let's just use parquet files because the Bronze layer doesn't need to be queried, so no need for delta tables or V-order, for that matter.
@@ -28,11 +30,11 @@ We're going to iterate many times across the medallion architecture we're going 
 ## Iteration One - One Table
 The goal here is to make it all the way through the medallion architecture as quicly as possible.  Set up all the different layers with an small iteration.  Let's take the ```SalesOrderHeader``` table.  For the first iteration, let's load the entire table all the way through.  This is going to be our Fact table with all the transactions in it.  We'll load some dimensions a little later.
 
-The other consideration for this iteration is that we will only have one tenant to load.  The database only has one tenant to start and we'll use a script to 'add' more tenants later.  But for now, it only has one, so we don't need to worry about that.
+The other consideration for this iteration is that we will only have one tenant to load.  The database comes with 2 tenants so we'll need to add a predicate when we pull the data to only include ```TenantID=1```.  Let's add this predicate when we load data out of SQL and into the Bronze layer.  That way we won't have to worry about for the rest of the ETL we build in this iteration.
 
 This will mean loading a full load of the ```SalesOrderHeader``` from the SQL Server and landing that in the Bronze layer as parquet, no v-order.  Then this parquet file should be loaded into the silver layer, just as is.  Remember that for us, the Silver layer is used for integrating the incementals, but for now, since we are only doing full loads, we don't have to worry aobut that.  So when you load silver, you can just remove any data from that last load, and replace it with the full load that was just pulled from SQL.
 
-Now that the Silver layer is loaded, let's load the Gold layer.  For our simple use case, let's only load 3 columns.
+Now that the Silver layer is loaded, let's load the Gold layer.  For our simple use case, let's only load 3 columns into a table called ```FactSalesHeader```
 ```
 SalesOrderID
 TotalDue
@@ -40,3 +42,12 @@ CustomerID
 ```
 
 This already allows us to begin to make some interesting queries both by Sales Order as a whole as by Customer.  We could add more columns and build more dimensions, but for now, we'll keep it super simple so we get a complete working system from source to target in a very short amount of time.  We will be able to continue the interations and add more each iteration.
+
+**Completion Criteria**
+
+The ```SalesOrderHeader``` should be loaded for one tenant in its entirety into Bronze.  Then fully loaded into Silver.  Then only 3 columns loaded into Gold for the ```SalesOrderHeader```.  This process should be able to be executed one right after the other - after the user starting only one item - a Spark Job, a Notebook, a Pipeline or whatever.
+
+## Iteration Two - Multiple Tenants
+Let's take the work we've done with the ```SalesOrderHeader``` table and expand it to include loading multiple Tenants.  The database already has 2 tenants in it, so let's modify the Bronze extract to include both tenants.  This will only entail removing the predicate from the Bronze load.
+
+Silver and Gold will need to change more.  We know we want Gold for each customer to be separate, but let's assume that one of our requirements is that eventually, querying of each tenant's data separately in Silver is a requirement.  So this might mean that you need to rename or move your Silver and Gold layers.  You could move each set of Silver and Gold into a new workspace - one Workspace for each Tenant, or you could just rename them in place in the current workspace.  Remember, ISVs can have hundreds if not thousands of Tenants, we'll try and build a hundred or so take this into account as you adjust this part of the architecture.  Our current guidance for PowerBI is for customers that a building customer facing PowerBI applications is to put one tenant in one workspace.  This strategy has worked well over the last few years, so consider this when making your decision on how to proceede.
