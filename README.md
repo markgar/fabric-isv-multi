@@ -28,4 +28,15 @@ We're going to iterate many times across the medallion architecture we're going 
 ## Iteration One - One Table
 The goal here is to make it all the way through the medallion architecture as quicly as possible.  Set up all the different layers with an small iteration.  Let's take the ```SalesOrderHeader``` table.  For the first iteration, let's load the entire table all the way through.  This is going to be our Fact table with all the transactions in it.  We'll load some dimensions a little later.
 
+The other consideration for this iteration is that we will only have one tenant to load.  The database only has one tenant to start and we'll use a script to 'add' more tenants later.  But for now, it only has one, so we don't need to worry about that.
 
+This will mean loading a full load of the ```SalesOrderHeader``` from the SQL Server and landing that in the Bronze layer as parquet, no v-order.  Then this parquet file should be loaded into the silver layer, just as is.  Remember that for us, the Silver layer is used for integrating the incementals, but for now, since we are only doing full loads, we don't have to worry aobut that.  So when you load silver, you can just remove any data from that last load, and replace it with the full load that was just pulled from SQL.
+
+Now that the Silver layer is loaded, let's load the Gold layer.  For our simple use case, let's only load 3 columns.
+```
+SalesOrderID
+TotalDue
+CustomerID
+```
+
+This already allows us to begin to make some interesting queries both by Sales Order as a whole as by Customer.  We could add more columns and build more dimensions, but for now, we'll keep it super simple so we get a complete working system from source to target in a very short amount of time.  We will be able to continue the interations and add more each iteration.
