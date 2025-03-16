@@ -66,4 +66,4 @@ Our ETL process now needs to run to extract TenantID=1 and move that to the Silv
 
 Remember, we need for this to run out of one single initiation action.  It needs to be unified into one single process that can be run with one action.  One manual run or one scheduled item.
 
-Also, use the tool of your choice to draw an architecture diagram showing how the system works.
+Also, use the tool of your choice to draw an architecture diagram showing how the the whole flow works.
