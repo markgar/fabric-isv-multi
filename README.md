@@ -47,7 +47,19 @@ This already allows us to begin to make some interesting queries both by Sales O
 
 The ```SalesOrderHeader``` should be loaded for one tenant in its entirety into Bronze.  Then fully loaded into Silver.  Then only 3 columns loaded into Gold for the ```SalesOrderHeader```.  This process should be able to be executed one right after the other - after the user starting only one item - a Spark Job, a Notebook, a Pipeline or whatever.
 
-## Iteration Two - Multiple Tenants
+## Iteration Two - Two Tenants
 Let's take the work we've done with the ```SalesOrderHeader``` table and expand it to include loading multiple Tenants.  The database already has 2 tenants in it, so let's modify the Bronze extract to include both tenants.  This will only entail removing the predicate from the Bronze load.
 
 Silver and Gold will need to change more.  We know we want Gold for each customer to be separate, but let's assume that one of our requirements is that eventually, querying of each tenant's data separately in Silver is a requirement.  So this might mean that you need to rename or move your Silver and Gold layers.  You could move each set of Silver and Gold into a new workspace - one Workspace for each Tenant, or you could just rename them in place in the current workspace.  Remember, ISVs can have hundreds if not thousands of Tenants, we'll try and build a hundred or so take this into account as you adjust this part of the architecture.  Our current guidance for PowerBI is for customers that a building customer facing PowerBI applications is to put one tenant in one workspace.  This strategy has worked well over the last few years, so consider this when making your decision on how to proceede.
+
+Since we're trying to move in small iterations, just builld the Silver and Gold for these two tenants by hand.  If we are going to have hundreds of tenants eventually, we'll need to build automation to do this, but for now, let's save that for later and just focus on the architecture we choose to house the data and the ETL to move the data from Bronze through Silver to Gold.
+
+Now that we have locations to land each tenant in Silver and Gold, go ahead and modify the ETL processes to filter the data from Bronze and move it to the tenants Silver.  Then modify the process that moves data from Silver to Gold to move the correct data to the correct Gold layer.
+
+**Completion Criteria**
+
+Bronze will look pretty similar - a full extract of the ```SalesOrderHeader``` from the source SQL database - although this time with both ```TenantID=1``` AND ```TenantID=2```.
+
+Silver and Gold will now have multiplied - one set for each tenant.
+
+Our ETL process now needs to run to extract TenantID=1 and move that to the Silver for TenantID=1 and the same for TenantID=2.  This should still be a 'dump and reload' process. Just remove all the data from the existing table in Silver and Gold and reload the entire table.
