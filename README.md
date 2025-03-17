@@ -8,7 +8,7 @@ The first is the hosted model.  We usually see this as one database per customer
 The other is to have one or just a few database that host all the customers.  Some have the TenantID on every table, some do not.  When it is not on every table, the ETL must eventually account for this an join to a table that does have the TenantID so that the records in that table can be differentiated by customer.
 
 ## AdventureworksLTMulti
-This database is a copy of the AdventureWorksLT database, but with one modification.  It has a new column added to the tables, TenantID.  This allows us to use this column to differentiate between the different tenants.  We'll use this column to split the data out by customer into different workspaces.  This keeps the data for each customer separate in different workspaces without having to add RLS.
+This database is a copy of the AdventureWorksLT database, but with one modification.  It has a new column added to the tables, TenantID.  This allows us to use this column to differentiate between the different tenants.  We'll use this column to split the data out by customer into different workspaces.  This keeps the data for each customer separate in different workspaces without having to add RLS.  In our example, I'd like for us to try at build out this example for at least 100 tenants.  Obviously it won't be possible to build this by hand, but we'll build the automation together to makes it easy to onboard a new tenant in Fabric.
 
 ## Medallion Architecture
 Let's use a Medallion Architecture.  Medallion architecture is just a strategy - a framework.  The way that it is described in books and in Microsoft's documentation is not the only way.  It can be used and molded to fit the current needs of the current project.  So while we'll build this a certain way, don't assume that this is the only way to build this.
@@ -67,3 +67,34 @@ Our ETL process now needs to run to extract TenantID=1 and move that to the Silv
 Remember, we need for this to run out of one single initiation action.  It needs to be unified into one single process that can be run with one action.  One manual run or one scheduled item.
 
 Also, use the tool of your choice to draw an architecture diagram showing how the the whole flow works.
+
+## Iteration Three - Enabling GitFlow an Bronze
+You might be anxious to get more tables loaded and you can do this next if you want to.  If that's the case, skip to the next Iteration.  But if you're up for the challenge, in this iteration, we'll be working on setting up the CICD pipelines and automation to deploy our code from dev to prod.  We'll just have two environments in this exercise so keep us moving, but most medallion architectures will have more that just two.
+
+The first thing we'll need to do is associate our workspaces with a Git repository.  This can be either GitHub or Azure Devops.  Either one works.  Azure Devops might be a little easier becuase you don't need to deal with PATs and you just use your EntraID to authenticate.  But use whatever is easier to get your hands on.  The deployment pipeline technology is almost identical so even those won't differ much between the two.
+
+Ok - I'm going to make an assumption that you have a workspace for your Bronze layer and one workspace for your Silver and Gold.  If you have separated Silver and Gold, that's totally fine.  You'll just end up with more workspaces when we are done.  Remember we're trying to go to at least 100 tenants so it might be easier to put Silver and Gold in the same workspace.  But this there really are multiple ways to make this work.
+
+Now that you have Bronze under source control, you can start committing your code to the Git repository.  This is already an improvement over not having Git backed workspaces, but to take it to the next level, we need to enable developers to work at the same time without bumping into each other.  If a developer is changing a semantic model and renaming a column, and another developer is modifying a report that relies on that semantic model, then we need for these two developers to work on their own copy of the source code so that the developer working on modifying the report can complete this task without being interrupted or broken by the change in the semantic model.
+
+This is done by using branches.  A branch is just a copy of the current source code in the reposoitory.  Developers can make changes on the new branch and then later merge it back into the main branch of the repository.  Fabric has capabilities to make this work and it is called Branch Out. This will create a new workspace and a new branch and bind them together.  These kinds of branches are commonly called 'feature branches'.  Developers work in that workspace and feature branch until they are done.  At that point, the developer creates a Pull Request in the Git reposotry - GitHub or Azure Devops - and this is the process by which the changes in the new branch are merged into the main branch - the main branch always holding the sum total of everything that has been merged back in.  This is the end of the road for the workspace and the feature branch that were created.  We can delete them both now.  You can delete the workspace in Fabric, but you'll have to go to your Git repo tool to delete the feature branch.
+
+The last thing we need to do is create a branch policy.  There are multiple ways to create a policy that will achieve this, but this policy will force developers to develop on a branch and use a pull request to merge into main.  Developers will not be allowed to commit code to main directly.  This enforces the dicipline of using branches.
+
+**Completion Criteria**
+
+Bronze workspace will be bound to the main branch of a Git repository.  There will be a branch policy on main that forbits direct commits to main and merge will only be allowe by a pull request.
+
+I'll give you a hint on how to set up your branch policy.  Go to the main branch and force approvals for merge on main.  The only way to do approvals is through a pull request.
+
+## Iteration Four - Enable deploying to Prod for Bronze
+You might notice that you don't really have a dev environmgnt and a prod environment.  You have essentially a prod workapce where you can branch out, do work, and then merge.  And this merge puts that code into production.  Without any chance to test prior.  This may actually work in some scenarios, but when working in an ISV environment, this rick is probably not tolerable.
+
+So, how do we add a production environment?  We'll need a new workspace and we'll need to deploy our code from the dev Bronze workspace to the prod Bronze workspace.  There are a couple ways to move the code from dev to prod.  One would be to add another permanent branch in the repo and bind that to prod and use Git to merge code from what would be the dev branch to the prod branch.  Once code is merged to the branch behind prod, you'd then to a git sync in the prod workspace and this would bring the code from git repo into the prod workspace.  This a valid strategy for Bronze.  This strategy won't work when we get to Silver and Gold when we have hundreds of workspaces to deploy to, but for Bronze, it could work.
+
+If this is the way you want to go, you'll need to add another long lived branch in your repo.  Let's say you leave main for your development and you add one called 'prod' for binding to your prod workspace.  You won't want to allow anyone to commit to this new 'prod' branch, not even from a feature branch.
+
+## Iteration Five - CICD on Silver and Gold
+This is going to be more tricky.  We know we are going to eventually have hundreds of workspaces for Silver and Gold so we can't create a Git repository for each one.  We also know that we still need dev to prod depolyments for Silver and Gold.  And we also know that we're going to need to deploy this prod workspace out to at least 100 tenant facing workspaces.  We can't really manage hundreds of Git repositories, so we'll just be deploying the code out to these hundred workspaces using some scripting and automation without binding them to a Git repo.
+
+So know that we have an idea how to build this, go ahead and build the same thing for Silver and Gold that you build for Bronze.  We're going to need the exact same thing.  a dev
