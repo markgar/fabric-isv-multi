@@ -68,7 +68,17 @@ Remember, we need for this to run out of one single initiation action.  It needs
 
 Also, use the tool of your choice to draw an architecture diagram showing how the the whole flow works.
 
-## Iteration Three - Enabling GitFlow an Bronze
+## Iteration Three - Adding More Tables to Silver
+Now that we are working with 2 tenants, it will be more and more important to be very clever with our code so that the more tables we add and the more tenants we add, it shouldn't require additional code.  It's ok to require some additional configuration, but becuase Bronze and Silver are schematic copies of each other, having to add additional code is a sign we're not being efficient with our code.  Also, we might eventually have hundreds of tables to load from Bronze to Silver and having one piece of code to keep up that is driven by configuration to load hundreds of tables saves us a lot of code to write and test.
+
+**Completion Criteria**
+
+All the Bronze tables Loaded into Silver.  We're still just using a dump-and-reload strategy for now.  So that we don't get too bogged down in the incremental process buildout.  Which of course may not ever need to be built if we can dump-and-reload under the SLA that is provided by the business.  No need to build it if we don't have to and we need to build the initialization process anyways, so this isn't wasted work.
+
+## Iteration Four - Adding More Tables To Gold
+Let's add some more tables to Gold, but let's not get too hung up over the dimensional modeling.  Let's add a DimCustomer table and a 
+
+## Iteration Four - Enabling GitFlow an Bronze
 You might be anxious to get more tables loaded and you can do this next if you want to.  If that's the case, skip to the next Iteration.  But if you're up for the challenge, in this iteration, we'll be working on setting up the CICD pipelines and automation to deploy our code from dev to prod.  We'll just have two environments in this exercise so keep us moving, but most medallion architectures will have more that just two.
 
 The first thing we'll need to do is associate our workspaces with a Git repository.  This can be either GitHub or Azure Devops.  Either one works.  Azure Devops might be a little easier becuase you don't need to deal with PATs and you just use your EntraID to authenticate.  But use whatever is easier to get your hands on.  The deployment pipeline technology is almost identical so even those won't differ much between the two.
@@ -87,7 +97,7 @@ Bronze workspace will be bound to the main branch of a Git repository.  There wi
 
 I'll give you a hint on how to set up your branch policy.  Go to the main branch and force approvals for merge on main.  The only way to do approvals is through a pull request.
 
-## Iteration Four - Enable deploying to Prod for Bronze
+## Iteration Five - Enable deploying to Prod for Bronze
 You might notice that you don't really have a dev environmgnt *and* a prod environment.  You have essentially a prod workspace where you can branch out, do work, and then merge.  And this merge puts that code into production.  Without any chance to test prior.  This may actually work in some scenarios, but when working in an ISV environment, this risk is probably not tolerable.
 
 So, how do we add a production environment?  We'll need a new workspace and we'll need to deploy our code from the dev Bronze workspace to the prod Bronze workspace.  There is more than one way to move the code from dev to prod.  One would be to add another permanent branch in the repo and bind that to prod and use Git to merge code from what would be the dev branch to the prod branch.  Once code is merged to the branch bound to prod, you'd then to a git sync in the prod workspace and this would bring the code from git repo into the prod workspace.  This a valid strategy for Bronze.  This strategy won't work when we get to Silver and Gold when we have hundreds of workspaces to deploy to, but for Bronze, it could work.
@@ -106,7 +116,7 @@ There is a question of order of operations here.  You might need to deploy a Fab
 
 By the way - while you can use the multiple branch method to get code from dev to prod in both your Bronze and the Silver and Gold workspaces, that strategy won't work for deploying from the Silver and Gold workspace to the hundred workspaces that are tenant facing.  You'll need to use this scripted CLI deployments strategy.  Also, if you end up with more environments than dev and prod, it might mean that using this second method makes more sense.  But all that really matters is that we get control of the CICD process in a way that reduces risk by controlling deploymens and increases quality by allowing for automated testing. Also, remember that the goal of this exercise is to understand better the tooling and options within Fabric to solve these problems.  This isn't meant as a best practices guide.  There really are no 'best pratices', just good practices.  Using your judgement to decide, is the art of this science.
 
-## Iteration Five - CICD on Silver and Gold
+## Iteration Six - CICD on Silver and Gold
 This is going to be more tricky.  We know we are going to eventually have hundreds of tenant facing workspaces for Silver and Gold so we can't create a Git repository for each one.  We also know that we still need dev to prod depolyments for Silver and Gold.  And we also know that we're going to need to deploy this prod workspace out to at least 100 tenant facing workspaces.  We can't really manage hundreds of Git repositories, so we'll just be deploying the code out to these hundred workspaces using some scripting and automation without binding them to a Git repo.
 
 So know that we have an idea how to build this, go ahead and build the same thing for Silver and Gold that you build for Bronze.  We're going to need the exact same thing.  a dev
