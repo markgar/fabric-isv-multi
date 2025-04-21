@@ -94,10 +94,7 @@ Now that we are working with more than one tenant, it will be more and more impo
 
 All the Bronze tables Loaded into Silver.  We're still just using a dump-and-reload strategy for now so that we don't get too bogged down in the incremental process buildout - which of course may not ever need to be built if we can dump-and-reload under the SLA that is provided by the business.  No need to build it if we don't have to and we need to build the initialization process anyways, so this isn't wasted work.
 
-## Iteration Six - Adding More Tables To Gold
-Let's add some more tables to Gold, but let's not get too hung up over the dimensional modeling.  Let's add a DimCustomer table and a 
-
-## Iteration Seven - ETL at scale
+## Iteration Seven - Silver ETL at scale
 Now at this point we have 1 shared Bronze, which is shared by all tenants.  And we have 3 tenant currently in our ISV solution.  Our customers often have 1000 tenants and this brings a whole new challenge to ETL scale.  If we have ~100 tables in our SQL Server, that means we have ~100 in Silver.  In many enterprises, daily load is acceptable, but in an ISV application, this will need to be sped up significantly.  Let's assume this is going to need to be updated every hour.  This means loading all ~100 tables each hour, but for each tenant.  And if we have 1000 tenants, this means we'll need to refresh 100*1000 tables each hour!  That's a total of 100,000 tables!  That's a lot - and that's just for Silver.  We'll need to refresh Gold also afterword.
 
 This is where some of the decisions we've made are going to really affect the outcomes.  If we chose Spark Notebooks and Pipelines, we'll need to figure out how to optimize to get 100,000 tables reloaded.  One thing we haven't talked about yet is incrementatl loads.  This will allow you to have smaller loads each hour, but it won't change how many tables need to be loaded.  So if your process has much overhead to process each table, then the whole process can end up taking a really long time.  We'll also want to maximize the parallelization so that we can complete as many tables at a time as possible.  Also the efficiency of your code is critical as any extra time wasted loading a table can really multiply out to a long time.
