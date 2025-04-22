@@ -103,5 +103,5 @@ In this iteration, we need to begin measuring how fast we can complete the compl
 
 So the first task is to automate the ETL of Bronze to Silver so that it can be run all at the same time.  Try it with just 3 tenants.  You can try just looping through each tenant one after the other and then try and figure out a way to run them in parallel.  Compare the two times.  Keep track of these as we'll want to compare how fast we can do 3, 30, 300, and 1000
 
-# Section Two - Code Deployment and CICD at Scale
+# Section Two - Code Deployment and CICD/GitFlow at Scale
 Coming Soon.

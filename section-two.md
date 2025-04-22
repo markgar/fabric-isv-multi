@@ -1,4 +1,4 @@
-# Section Two - Code Deployment and CICD at Scale
+# Section Two - Code Deployment and CICD/GitFlow at Scale
 ## Iteration One - Enabling GitFlow an Bronze
 You might be anxious to get more tables loaded and you can do this next if you want to.  If that's the case, skip to the next Iteration.  But if you're up for the challenge, in this iteration we'll be working on setting up the CICD pipelines and automation to deploy our code from dev to prod.  We'll just have two environments in this exercise so keep us moving, but most medallion architectures will have more that just two.
 
