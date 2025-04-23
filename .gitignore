@@ -1,0 +1,88 @@
+# SQL Server Database Project specific files
+*.dbmdl
+*.jfm
+*.user
+*.dbproj.schemaview
+*.publish.xml
+*.sqlproj.user
+
+# VS Code files
+.vscode/
+*.code-workspace
+.history/
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# NuGet packages and cache
+*.nupkg
+**/packages/*
+!**/packages/build/
+*.nuget.props
+*.nuget.targets
+project.lock.json
+project.assets.json
+*.nuget.cache
+
+# SQLPackage deployment and temp files
+*.dacpac
+*.bacpac
+*.deployreport.xml
+*.dll
+*.pdb
+
+# Database-related files that might contain sensitive information
+publish.xml
+*.publish.xml
+*.publish.sql
+
+# macOS specific files
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Thumbnails
+._*
+
+# Files that might appear in the root of a volume
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Azure-specific files
+*.publishsettings
+*.pubxml
+PublishScripts/
+
+# Temporary SQL files
+*.tmp_sql
+
+# Credential files
+*.pfx
+*.snk
+**/credentials.json
+**/appsettings.*.json
+**/secrets.json
+
+# Log files
+*.log
+*.trc
